@@ -1,0 +1,14 @@
+set(app_name bench_math)
+
+add_executable(${app_name} ${app_name}.cc)
+
+target_link_libraries(${app_name} 
+PRIVATE 
+    benchmark::benchmark
+)
+
+set_target_properties(${app_name} PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY ${MSVC_DEBUGGER_DIR}
+    DEBUG_POSTFIX "d"
+    FOLDER benchmarks
+)
