@@ -22,8 +22,10 @@ install(TARGETS TestLib
         ARCHIVE DESTINATION lib
 )
 
-install(FILES $<TARGET_PDB_FILE:TestLib>
-    DESTINATION bin
-    CONFIGURATIONS Debug
-    OPTIONAL
-)
+if(WIN32)
+    install(FILES $<TARGET_PDB_FILE:TestLib>
+        DESTINATION bin
+        CONFIGURATIONS Debug
+        OPTIONAL
+    )
+endif()

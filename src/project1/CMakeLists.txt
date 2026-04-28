@@ -18,8 +18,10 @@ install(TARGETS project1
         ARCHIVE DESTINATION lib
 ) 
 
-install(FILES $<TARGET_PDB_FILE:project1>
-    DESTINATION bin
-    CONFIGURATIONS Debug
-    OPTIONAL
-)
+if(WIN32)
+    install(FILES $<TARGET_PDB_FILE:project1>
+        DESTINATION bin
+        CONFIGURATIONS Debug
+        OPTIONAL
+    )
+endif()

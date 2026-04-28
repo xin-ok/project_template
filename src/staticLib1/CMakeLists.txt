@@ -10,8 +10,10 @@ install(TARGETS staticLib1
         ARCHIVE DESTINATION lib
 )
 
-install(FILES $<TARGET_PDB_FILE:sharedLib1>
-    DESTINATION lib
-    CONFIGURATIONS Debug
-    OPTIONAL
-)
+if(WIN32)
+    install(FILES $<TARGET_PDB_FILE:staticLib1>
+        DESTINATION lib
+        CONFIGURATIONS Debug
+        OPTIONAL
+    )
+endif()

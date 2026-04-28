@@ -16,8 +16,10 @@ install(TARGETS sharedLib1
         ARCHIVE DESTINATION lib
 )
 
-install(FILES $<TARGET_PDB_FILE:sharedLib1>
-    DESTINATION bin
-    CONFIGURATIONS Debug
-    OPTIONAL
-)
+if(WIN32)
+    install(FILES $<TARGET_PDB_FILE:sharedLib1>
+        DESTINATION bin
+        CONFIGURATIONS Debug
+        OPTIONAL
+    )
+endif()
