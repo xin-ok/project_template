@@ -70,5 +70,69 @@
             "configurePreset": "vs2022",
             "configuration": "Release"
         }
+    ],
+    "packagePresets": [
+        {
+            "name": "cpack-vs2022",
+            "displayName": "cpack-vs2022",
+            "configurePreset": "vs2022"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ctest-vs2022-debug",
+            "description": "ctest-vs2022-debug",
+            "displayName": "ctest-vs2022-debug",
+            "configuration": "Debug",
+            "configurePreset": "vs2022"
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "workflow-vs2022-debug",
+            "description": "workflow-vs2022-debug",
+            "displayName": "workflow-vs2022-debug",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "vs2022"
+                },
+                {
+                    "type": "build",
+                    "name": "vs2022-debug"
+                },
+                {
+                    "type": "test",
+                    "name": "ctest-vs2022-debug"
+                },
+                {
+                    "type": "package",
+                    "name": "cpack-vs2022"
+                }
+            ]
+        },
+        {
+            "name": "workflow-vs2022-release",
+            "description": "workflow-vs2022-release",
+            "displayName": "workflow-vs2022-release",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "vs2022"
+                },
+                {
+                    "type": "build",
+                    "name": "vs2022-release"
+                },
+                {
+                    "type": "test",
+                    "name": "ctest-vs2022-release"
+                },
+                {
+                    "type": "package",
+                    "name": "cpack-vs2022"
+                }
+            ]
+        }
     ]
 }
