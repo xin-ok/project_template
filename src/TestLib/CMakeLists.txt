@@ -28,4 +28,8 @@ if(WIN32)
         CONFIGURATIONS Debug
         OPTIONAL
     )
+else()
+    set_target_properties(TestLib PROPERTIES
+        INSTALL_RPATH "$ORIGIN/../lib"
+    )
 endif()
