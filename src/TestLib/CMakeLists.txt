@@ -12,14 +12,14 @@ set_target_properties(TestLib PROPERTIES
 )
 
 add_test(NAME TestLib 
-         COMMAND TestLib
-         WORKING_DIRECTORY $<TARGET_FILE_DIR:TestLib>
+    COMMAND TestLib
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:TestLib>
 )
 
 install(TARGETS TestLib
-        RUNTIME DESTINATION bin     
-        LIBRARY DESTINATION lib     
-        ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin     
+    LIBRARY DESTINATION lib     
+    ARCHIVE DESTINATION lib
 )
 
 if(WIN32)

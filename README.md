@@ -13,8 +13,10 @@
 - ✅ **Sanitizer 支持** — 可选启用 AddressSanitizer / UndefinedBehaviorSanitizer / ThreadSanitizer
 - ✅ **代码格式化** — 内置 `.clang-format`（Google 风格）
 - ✅ **调试友好** — Debug 模式下生成完整调试信息，禁用优化
+- ✅ **预编译头** — 使用 CMake 3.16+ `target_precompile_headers` 自动注入，大幅加速编译
+- ✅ **跨平台项目写法** — 展示了跨平台动态库、静态库、可执行文件的简单例子
 - ✅ **多 VS 版本检测** — Windows 下自动检测所有已安装的 Visual Studio 版本（vswhere）
-- ✅ **多编译器支持** — 同时检测 MSVC、Clang-cl、独立 Clang、MinGW GCC
+- ✅ **多编译器支持** — 同时检测 MSVC、Clang、MinGW GCC、GCC
 - ✅ **跨平台统一体验** — Linux/Windows 使用同一套 Preset 生成脚本，行为一致
 - ✅ **VS Code 深度集成** — 配合 CMake Tools 插件，自动识别 Preset，可视化选择编译器、构建、测试、打包、安装
 
@@ -23,7 +25,6 @@
 ```
 project_template/
 ├── CMakeLists.txt                  # 根 CMake 配置
-├── CMakePresets.json               # CMake Preset 配置（由脚本自动生成）
 ├── .clang-format                   # Google 风格代码格式化配置
 ├── LICENSE                         # MIT 开源许可证
 ├── .gitignore                      # Git 忽略规则
@@ -46,6 +47,7 @@ project_template/
     │   └── staticLib1.cc
     ├── sharedLib1/                 # 动态库示例（含跨平台导出宏）
     │   ├── CMakeLists.txt
+    │   ├── pch.h
     │   ├── sharedLib1.h
     │   ├── sharedLib1.cc
     │   └── sharedLib1_export.h
@@ -87,7 +89,7 @@ generate_presets.bat
 
 脚本会自动检测当前环境的：
 - **操作系统** — Linux / Windows
-- **编译器** — GCC、Clang、MSVC 及其版本号
+- **编译器** — GCC、Clang、MSVC 及其完整版本号（如 14.2.0）
 - **构建工具** — Ninja、Unix Makefiles、Visual Studio
 
 生成后即可查看可用的 Preset：
@@ -102,39 +104,39 @@ cmake --list-presets
 
 ```bash
 # 配置并构建（具体名称以 --list-presets 输出为准）
-# Linux 示例：GCC 14.2 Debug
-cmake --preset gcc_14.2-debug
-cmake --build --preset gcc_14.2-debug
+# Linux 示例：GCC 14.2.0 Debug
+cmake --preset gcc_14.2.0-debug
+cmake --build --preset gcc_14.2.0-debug
 
 # Windows 示例：MSVC 17
 cmake --preset msvc17
 cmake --build --preset msvc17-debug
 
-# Windows 示例：独立 Clang 20.1 Debug
-cmake --preset clang_20.1-debug
-cmake --build --preset clang_20.1-debug
+# Windows 示例：独立 Clang 20.1.0 Debug
+cmake --preset clang_20.1.0-debug
+cmake --build --preset clang_20.1.0-debug
 
 # 运行（Linux）
-./build/gcc_14.2-debug/bin/project1d
-./build/gcc_14.2-debug/bin/TestLibd
+./build/gcc_14.2.0-debug/bin/project1d
+./build/gcc_14.2.0-debug/bin/TestLibd
 
 # 运行（Windows）
 build\msvc17\bin\Debug\project1d.exe
 build\msvc17\bin\Debug\TestLibd.exe
 
 # 测试
-ctest --preset ctest-gcc_14.2-debug
+ctest --preset ctest-gcc_14.2.0-debug
 
 # 打包
-cpack --preset cpack-gcc_14.2-debug
+cpack --preset cpack-gcc_14.2.0-debug
 
 # 安装
-cmake --install build/gcc_14.2-debug --prefix install/gcc_14.2-debug
+cmake --install build/gcc_14.2.0-debug --prefix install/gcc_14.2.0-debug
 
 # 一键工作流
 # 配置 → 构建 → 测试 → 打包，一条命令完成：
 
-cmake --workflow --preset workflow-gcc_14.2-debug
+cmake --workflow --preset workflow-gcc_14.2.0-debug
 
 ```
 
@@ -153,24 +155,24 @@ cmake --workflow --preset workflow-gcc_14.2-debug
 
 ### Preset 命名规则
 
-自动生成的 Preset 名称格式如下：
+自动生成的 Preset 名称格式如下（GCC 使用 `-dumpfullversion` 获取完整版本号，如 `14.2.0`）：
 
 | 平台 | 配置 Preset 名称 | 说明 |
 |------|-----------------|------|
-| Linux GCC | `gcc_{版本}-debug` / `gcc_{版本}-release` | 如 `gcc_14.2-debug` |
-| Linux Clang | `clang_{版本}-debug` / `clang_{版本}-release` | 如 `clang_20.1-debug` |
+| Linux GCC | `gcc_{版本}-debug` / `gcc_{版本}-release` | 如 `gcc_14.2.0-debug` |
+| Linux Clang | `clang_{版本}-debug` / `clang_{版本}-release` | 如 `clang_20.1.0-debug` |
 | Windows MSVC | `msvc{主版本}` | 如 `msvc17`，多配置，构建时指定 Debug/Release |
-| Windows Clang | `clang_{版本}-debug` / `clang_{版本}-release` | 如 `clang_20.1-debug`，独立安装的 Clang |
-| Windows MinGW | `gcc_{版本}-debug` / `gcc_{版本}-release` | 如 `gcc_14.2-debug`，MinGW GCC |
+| Windows Clang | `clang_{版本}-debug` / `clang_{版本}-release` | 如 `clang_20.1.0-debug`，独立安装的 Clang |
+| Windows MinGW | `gcc_{版本}-debug` / `gcc_{版本}-release` | 如 `gcc_14.2.0-debug`，MinGW GCC |
 
 其他 Preset 类型（build、test、package、workflow）的命名均基于配置 Preset 名称派生：
 
 | Preset 类型 | 命名格式 | 示例 |
 |------------|---------|------|
-| buildPreset | `{配置名称}` | `gcc_14.2-debug` |
-| testPreset | `ctest-{配置名称}` | `ctest-gcc_14.2-debug` |
-| packagePreset | `cpack-{配置名称}` | `cpack-gcc_14.2-debug` |
-| workflowPreset | `workflow-{配置名称}` | `workflow-gcc_14.2-debug` |
+| buildPreset | `{配置名称}` | `gcc_14.2.0-debug` |
+| testPreset | `ctest-{配置名称}` | `ctest-gcc_14.2.0-debug` |
+| packagePreset | `cpack-{配置名称}` | `cpack-gcc_14.2.0-debug` |
+| workflowPreset | `workflow-{配置名称}` | `workflow-gcc_14.2.0-debug` |
 
 ### 配置 Preset（configurePresets）
 
@@ -202,16 +204,16 @@ cmake --workflow --preset workflow-gcc_14.2-debug
 工作流 Preset 将 **配置 → 构建 → 测试 → 打包** 四个步骤串联成一个命令：
 
 ```bash
-cmake --workflow --preset workflow-gcc_14.2-debug
+cmake --workflow --preset workflow-gcc_14.2.0-debug
 ```
 
 等价于依次执行：
 
 ```bash
-cmake --preset gcc_14.2-debug
-cmake --build --preset gcc_14.2-debug
-ctest --preset ctest-gcc_14.2-debug
-cpack --preset cpack-gcc_14.2-debug
+cmake --preset gcc_14.2.0-debug
+cmake --build --preset gcc_14.2.0-debug
+ctest --preset ctest-gcc_14.2.0-debug
+cpack --preset cpack-gcc_14.2.0-debug
 ```
 
 ### Preset 层级关系图
@@ -219,42 +221,42 @@ cpack --preset cpack-gcc_14.2-debug
 ```
 CMakePresets.json
 ├── configurePresets          # 配置 Preset（定义编译器、生成器、构建类型）
-│   ├── gcc_14.2-debug        # Linux: GCC 14.2 Debug
-│   ├── gcc_14.2-release      # Linux: GCC 14.2 Release
-│   ├── clang_20.1-debug      # Linux/Windows: Clang 20.1 Debug
-│   ├── clang_20.1-release    # Linux/Windows: Clang 20.1 Release
+│   ├── gcc_14.2.0-debug      # Linux: GCC 14.2.0 Debug
+│   ├── gcc_14.2.0-release    # Linux: GCC 14.2.0 Release
+│   ├── clang_20.1.0-debug    # Linux/Windows: Clang 20.1.0 Debug
+│   ├── clang_20.1.0-release  # Linux/Windows: Clang 20.1.0 Release
 │   └── msvc17                # Windows: MSVC 17（多配置）
 │
 ├── buildPresets              # 构建 Preset（关联配置 Preset）
-│   ├── gcc_14.2-debug        # → gcc_14.2-debug
-│   ├── gcc_14.2-release      # → gcc_14.2-release
-│   ├── clang_20.1-debug      # → clang_20.1-debug
-│   ├── clang_20.1-release    # → clang_20.1-release
+│   ├── gcc_14.2.0-debug      # → gcc_14.2.0-debug
+│   ├── gcc_14.2.0-release    # → gcc_14.2.0-release
+│   ├── clang_20.1.0-debug    # → clang_20.1.0-debug
+│   ├── clang_20.1.0-release  # → clang_20.1.0-release
 │   ├── msvc17-debug          # → msvc17 (Debug)
 │   └── msvc17-release        # → msvc17 (Release)
 │
 ├── testPresets               # 测试 Preset（关联配置 Preset）
-│   ├── ctest-gcc_14.2-debug    # → gcc_14.2-debug
-│   ├── ctest-gcc_14.2-release  # → gcc_14.2-release
-│   ├── ctest-clang_20.1-debug  # → clang_20.1-debug
-│   ├── ctest-clang_20.1-release# → clang_20.1-release
-│   ├── ctest-msvc17-debug      # → msvc17 (Debug)
-│   └── ctest-msvc17-release    # → msvc17 (Release)
+│   ├── ctest-gcc_14.2.0-debug    # → gcc_14.2.0-debug
+│   ├── ctest-gcc_14.2.0-release  # → gcc_14.2.0-release
+│   ├── ctest-clang_20.1.0-debug  # → clang_20.1.0-debug
+│   ├── ctest-clang_20.1.0-release# → clang_20.1.0-release
+│   ├── ctest-msvc17-debug        # → msvc17 (Debug)
+│   └── ctest-msvc17-release      # → msvc17 (Release)
 │
 ├── packagePresets            # 打包 Preset（关联配置 Preset）
-│   ├── cpack-gcc_14.2-debug    # → gcc_14.2-debug
-│   ├── cpack-gcc_14.2-release  # → gcc_14.2-release
-│   ├── cpack-clang_20.1-debug  # → clang_20.1-debug
-│   ├── cpack-clang_20.1-release# → clang_20.1-release
-│   └── cpack-msvc17            # → msvc17
+│   ├── cpack-gcc_14.2.0-debug    # → gcc_14.2.0-debug
+│   ├── cpack-gcc_14.2.0-release  # → gcc_14.2.0-release
+│   ├── cpack-clang_20.1.0-debug  # → clang_20.1.0-debug
+│   ├── cpack-clang_20.1.0-release# → clang_20.1.0-release
+│   └── cpack-msvc17              # → msvc17
 │
 └── workflowPresets           # 工作流 Preset（串联多个 Preset）
-    ├── workflow-gcc_14.2-debug       # configure → build → test → package
-    ├── workflow-gcc_14.2-release     # configure → build → test → package
-    ├── workflow-clang_20.1-debug     # configure → build → test → package
-    ├── workflow-clang_20.1-release   # configure → build → test → package
-    ├── workflow-msvc17-debug         # configure → build → test → package
-    └── workflow-msvc17-release       # configure → build → test → package
+    ├── workflow-gcc_14.2.0-debug       # configure → build → test → package
+    ├── workflow-gcc_14.2.0-release     # configure → build → test → package
+    ├── workflow-clang_20.1.0-debug     # configure → build → test → package
+    ├── workflow-clang_20.1.0-release   # configure → build → test → package
+    ├── workflow-msvc17-debug           # configure → build → test → package
+    └── workflow-msvc17-release         # configure → build → test → package
 ```
 
 > 以上名称仅为示例，实际生成的名称取决于你环境中检测到的编译器类型和版本。
@@ -279,13 +281,13 @@ CMakePresets.json
 
 ```bash
 # 启用 AddressSanitizer（检测内存错误）
-cmake --preset gcc_14.2-debug -DENABLE_FSANITIZE_ADDRESS=ON
+cmake --preset gcc_14.2.0-debug -DENABLE_FSANITIZE_ADDRESS=ON
 
 # 启用 UndefinedBehaviorSanitizer（检测未定义行为）
-cmake --preset gcc_14.2-debug -DENABLE_FSANITIZE_UNDEFINED=ON
+cmake --preset gcc_14.2.0-debug -DENABLE_FSANITIZE_UNDEFINED=ON
 
 # 启用 ThreadSanitizer（检测数据竞争）
-cmake --preset gcc_14.2-debug -DENABLE_FSANITIZE_THREAD=ON
+cmake --preset gcc_14.2.0-debug -DENABLE_FSANITIZE_THREAD=ON
 ```
 
 以上变量默认关闭。
@@ -306,7 +308,7 @@ cmake --preset gcc_14.2-debug -DENABLE_FSANITIZE_THREAD=ON
 clean_all.bat
 
 # 或使用 CMake 自定义目标
-cmake --build build/gcc_14.2-debug --target clean_all_binary
+cmake --build build/gcc_14.2.0-debug --target clean_all_binary
 ```
 
 ## 许可证

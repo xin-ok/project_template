@@ -66,6 +66,11 @@ ReflowComments: true
 
 # 是否排序 #include 语句，true 表示按字母顺序排序
 SortIncludes: true
+IncludeCategories:
+  # 优先级 0 最高 — pch.h 始终在最顶部
+  - Regex: '^"(pch|stdafx)\.h"$'
+    Priority: 0
+    SortPriority: 0
 
 # 是否排序 using 声明语句，true 表示按字母顺序排序
 SortUsingDeclarations: true
