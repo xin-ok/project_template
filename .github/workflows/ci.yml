@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  windows_msvc17:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 生成 CMakePresets.json
+        run: ./generate_presets.bat
+
+      - name: 查看所有预设
+        run: cmake --list-presets
+      
+      - name: 配置
+        run: cmake --preset msvc17
+
+      - name: 构建 (Debug)
+        run: cmake --build --preset msvc17-debug
+
+      - name: 测试 (Debug)
+        run: ctest --preset ctest-msvc17-debug
+
+      - name: 打包 (Debug)
+        run: cpack --preset cpack-msvc17 -C Debug
+
+      - name: 安装 (Debug)
+        run: cmake --install build/msvc17 --config Debug
+
+      - name: 构建 (Release)
+        run: cmake --build --preset msvc17-release
+
+      - name: 测试 (Release)
+        run: ctest --preset ctest-msvc17-release  
+
+      - name: 打包 (Release)
+        run: cpack --preset cpack-msvc17 -C Release
+
+      - name: 安装 (Release)
+        run: cmake --install build/msvc17 --config Release
+
+      - name: 清理
+        run: ./clean_all.bat
+
+
+  ubuntu_gcc_11_4_0:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Ninja
+        run: sudo apt update && sudo apt install -y ninja-build
+
+      - name: 查看 GCC 版本
+        run: |
+          gcc --version
+          g++ --version
+
+      - name: 生成 CMakePresets.json
+        run: ./generate_presets.sh
+          
+      - name: 查看所有预设
+        run: cmake --list-presets
+
+      - name: 配置 (Debug)
+        run: cmake --preset gcc_11.4.0-debug
+
+      - name: 工作流 (Debug)
+        run: cmake --workflow --preset workflow-gcc_11.4.0-debug
+
+      - name: 安装 (Debug)
+        run: cmake --install build/gcc_11.4.0-debug
+
+      - name: 配置 (Release)
+        run: cmake --preset gcc_11.4.0-release
+
+      - name: 工作流 (Release)
+        run: cmake --workflow --preset workflow-gcc_11.4.0-release
+
+      - name: 安装 (Release)
+        run: cmake --install build/gcc_11.4.0-release
+
+      - name: 清理
+        run: ./clean_all.sh

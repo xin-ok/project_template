@@ -131,7 +131,7 @@ ctest --preset ctest-gcc_14.2.0-debug
 cpack --preset cpack-gcc_14.2.0-debug
 
 # 安装
-cmake --install build/gcc_14.2.0-debug --prefix install/gcc_14.2.0-debug
+cmake --install build/gcc_14.2.0-debug --config Debug
 
 # 一键工作流
 # 配置 → 构建 → 测试 → 打包，一条命令完成：

@@ -130,7 +130,7 @@ ctest --preset ctest-gcc_14.2.0-debug
 cpack --preset cpack-gcc_14.2.0-debug
 
 # Install
-cmake --install build/gcc_14.2.0-debug --prefix install/gcc_14.2.0-debug
+cmake --install build/gcc_14.2.0-debug --config Debug
 
 # One-click workflow
 # Configure → Build → Test → Package, all in one command:
