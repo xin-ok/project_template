@@ -13,8 +13,8 @@ AlwaysBreakAfterDefinitionReturnType: None
 # 返回类型后的换行行为，None 表示不强制换行
 AlwaysBreakAfterReturnType: None
 
-# 模板声明后是否总是换行，Yes 表示总是换行
-AlwaysBreakTemplateDeclarations: Yes
+# 模板声明后是否总是换行，true 表示总是换行
+AlwaysBreakTemplateDeclarations: true
 
 # 函数调用参数是否尽量打包在一行，false 表示不打包，每个参数单独一行
 BinPackArguments: false

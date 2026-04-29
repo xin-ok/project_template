@@ -34,7 +34,6 @@ if(WIN32)
 else()
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/lib/Release)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/lib/Debug)
-    add_compile_options()
     add_compile_options(
         -Werror                   # 开启警告视为错误
         -Wall                     # 开启大部分常见警告
@@ -151,7 +150,7 @@ if(ENABLE_FSANITIZE_THREAD)
     endif()
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/src)
 find_package(Threads REQUIRED)
 
 # Windows下，当文件被锁定或占用时，该目标生成会执行失败
