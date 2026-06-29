@@ -1,0 +1,4 @@
+add_subdirectory(project_test)
+add_subdirectory(static_lib)
+add_subdirectory(shared_lib)
+add_subdirectory(project_lib_test)

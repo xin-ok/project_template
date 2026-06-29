@@ -1,6 +1,6 @@
 // #include "pch.h" // 通过cmake管理，可以不用手动包含预编译头
 
-#include "sharedLib1/sharedLib1.h"
+#include "shared_lib/shared_lib.h"
 
 #ifdef _WIN32
 
@@ -41,4 +41,4 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 }
 #endif
 
-void SHAREDLIB1_DECL sharedLib1() { std::cout << "sharedLib1" << std::endl; }
+void SHAREDLIB_DECL sharedLib1() { std::cout << "sharedLib1" << std::endl; }

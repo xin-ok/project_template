@@ -4,9 +4,6 @@ set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 
 # ============================================================
 #  👇 自定义打包信息
-#  修改描述和公司名以适配你的业务需求
-#  示例: set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "My Awesome App")
-#        set(CPACK_PACKAGE_VENDOR "MyCompany")
 # ============================================================
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MyApplication")
 set(CPACK_PACKAGE_VENDOR "MyCompany")

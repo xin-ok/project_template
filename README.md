@@ -12,70 +12,15 @@
 - ✅ **工作流 Preset** — 一条命令完成配置 → 构建 → 测试 → 打包全流程
 - ✅ **Sanitizer 支持** — 可选启用 AddressSanitizer / UndefinedBehaviorSanitizer / ThreadSanitizer
 - ✅ **代码格式化** — 内置 `.clang-format`（Google 风格）
-- ✅ **调试友好** — Debug 模式下生成完整调试信息，禁用优化
 - ✅ **预编译头** — 使用 CMake 3.16+ `target_precompile_headers` 自动注入，大幅加速编译
-- ✅ **跨平台项目写法** — 展示了跨平台动态库、静态库、可执行文件的简单例子
+- ✅ **跨平台项目演示** — 展示了跨平台动态库、静态库、可执行文件的简单案例
 - ✅ **多 VS 版本检测** — Windows 下自动检测所有已安装的 Visual Studio 版本（vswhere）
 - ✅ **多编译器支持** — 同时检测 MSVC、Clang、MinGW GCC、GCC
-- ✅ **跨平台统一体验** — Linux/Windows 使用同一套 Preset 生成脚本，行为一致
-- ✅ **VS Code 深度集成** — 配合 CMake Tools 插件，自动识别 Preset，可视化选择编译器、构建、测试、打包、安装
-
-## 项目结构
-
-```
-project_template/
-├── CMakeLists.txt                  # 根 CMake 配置
-├── .clang-format                   # Google 风格代码格式化配置
-├── LICENSE                         # MIT 开源许可证
-├── .gitignore                      # Git 忽略规则
-├── generate_presets.sh             # Linux 生成 CMakePresets.json 脚本
-├── generate_presets.bat            # Windows 生成 CMakePresets.json 脚本
-├── clean_all.sh                    # Linux 清理脚本
-├── clean_all.bat                   # Windows 清理脚本
-├── cmake/
-│   ├── GeneratePresets.cmake       # 🔧 自动检测环境并生成 CMakePresets.json
-│   ├── GeneralPreset.cmake         # 通用编译选项（警告、调试、Sanitizer）
-│   ├── CPackPreset.cmake           # CPack 打包配置
-│   └── PrivatePreset.cmake         # 私有/项目特定编译选项
-└── src/
-    ├── project1/                   # 主可执行程序
-    │   ├── CMakeLists.txt
-    │   └── project1.cc
-    ├── staticLib1/                 # 静态库示例
-    │   ├── CMakeLists.txt
-    │   ├── staticLib1.h
-    │   └── staticLib1.cc
-    ├── sharedLib1/                 # 动态库示例（含跨平台导出宏）
-    │   ├── CMakeLists.txt
-    │   ├── pch.h
-    │   ├── sharedLib1.h
-    │   ├── sharedLib1.cc
-    │   └── sharedLib1_export.h
-    └── TestLib/                    # 测试程序（链接静态库 + 动态库）
-        ├── CMakeLists.txt
-        └── TestLib.cc
-```
+- ✅ **VS Code 深度集成** — 配合 CMake Tools 插件，自动识别 Preset，可视化编译、构建、测试、打包、安装
 
 ## 快速开始
 
-### 第一步：自定义项目（可选）
-
-使用模板前，建议先修改项目名和版本号以适配你的业务需求：
-
-**`CMakeLists.txt`** — 修改项目名和版本号：
-```cmake
-project(你的项目名 VERSION 你的版本号)
-```
-
-**`cmake/CPackPreset.cmake`** — 修改打包描述和公司名：
-```cmake
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "你的应用描述")
-set(CPACK_PACKAGE_VENDOR "你的公司名")
-```
-
-> 子项目（`src/project1`、`src/staticLib1` 等）为示例模板，可按需增删改。
-
-### 第二步：生成 Presets
+### 第一步：生成 Presets
 
 `CMakePresets.json` 包含了编译器路径等环境相关配置，不同机器上不同。首次使用项目时，先运行自动检测脚本：
 
@@ -98,9 +43,7 @@ generate_presets.bat
 cmake --list-presets
 ```
 
-### 第三步：配置与构建
-
-以下命令都可以通过 VScode + CMake Tools 图形化界面操作完成
+### 第二步：配置与构建
 
 ```bash
 # 配置并构建（具体名称以 --list-presets 输出为准）
@@ -112,17 +55,9 @@ cmake --build --preset gcc_14.2.0-debug
 cmake --preset msvc17
 cmake --build --preset msvc17-debug
 
-# Windows 示例：独立 Clang 20.1.0 Debug
-cmake --preset clang_20.1.0-debug
-cmake --build --preset clang_20.1.0-debug
-
 # 运行（Linux）
 ./build/gcc_14.2.0-debug/bin/project1d
 ./build/gcc_14.2.0-debug/bin/TestLibd
-
-# 运行（Windows）
-build\msvc17\bin\Debug\project1d.exe
-build\msvc17\bin\Debug\TestLibd.exe
 
 # 测试
 ctest --preset ctest-gcc_14.2.0-debug
@@ -137,17 +72,11 @@ cmake --install build/gcc_14.2.0-debug --config Debug
 # 配置 → 构建 → 测试 → 打包，一条命令完成：
 
 cmake --workflow --preset workflow-gcc_14.2.0-debug
-
 ```
 
 ### 在 VS Code 中使用
 
-安装 **CMake Tools** 插件后，插件会自动读取 `CMakePresets.json` 中的 Preset，你可以在 VS Code 底部的状态栏中选择：
-
-- **Kit** — 选择编译器（对应 configurePreset）
-- **Build** — 选择构建配置
-- **Run CTest** — 运行测试
-- **Package** — 打包
+安装 **CMake Tools** 插件后，插件会自动读取 `CMakePresets.json` 中的 Preset，从而在可视化界面完成以上操作
 
 ## CMakePresets.json 详解
 
@@ -289,10 +218,6 @@ cmake --preset gcc_14.2.0-debug -DENABLE_FSANITIZE_UNDEFINED=ON
 # 启用 ThreadSanitizer（检测数据竞争）
 cmake --preset gcc_14.2.0-debug -DENABLE_FSANITIZE_THREAD=ON
 ```
-
-以上变量默认关闭。
-
-> **注意**: Sanitizer 有显著的性能开销，建议仅在 Debug 模式下使用。
 
 ## 代码格式化
 
