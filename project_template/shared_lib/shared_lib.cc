@@ -41,4 +41,4 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 }
 #endif
 
-void SHAREDLIB_DECL sharedLib1() { std::cout << "sharedLib1" << std::endl; }
+void SHAREDLIB_DECL shared_lib() { std::cout << "shared_lib" << std::endl; }

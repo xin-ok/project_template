@@ -8,6 +8,6 @@
 #    define SHAREDLIB_DECL __declspec(dllimport)
 #  endif  
 #else
-#  define SHAREDLIB1_DECL
+#  define SHAREDLIB_DECL
 #endif
 // clang-format on
