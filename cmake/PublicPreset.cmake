@@ -151,10 +151,10 @@ set(UTILITY_FILES
     ${PROJECT_SOURCE_DIR}/CMakeLists.txt
 )
 
-add_custom_target(Utilities
-    COMMENT "Utility files and scripts"
+add_custom_target(utilities
+    COMMENT "utilities files and scripts"
 )
 
-target_sources(Utilities PRIVATE ${UTILITY_FILES})
+target_sources(utilities PRIVATE ${UTILITY_FILES})
 
-set_target_properties(clean_all_binary Utilities PROPERTIES FOLDER "Tools")
+set_target_properties(clean_all_binary utilities PROPERTIES FOLDER "tools")
