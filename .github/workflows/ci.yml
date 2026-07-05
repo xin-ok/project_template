@@ -18,33 +18,24 @@ jobs:
 
       - name: 查看所有预设
         run: cmake --list-presets
-      
-      - name: 配置
-        run: cmake --preset msvc17
 
-      - name: 构建 (Debug)
-        run: cmake --build --preset msvc17-debug
+      - name: 配置 (Debug)
+        run: cmake --preset msvc17-debug
 
-      - name: 测试 (Debug)
-        run: ctest --preset ctest-msvc17-debug
-
-      - name: 打包 (Debug)
-        run: cpack --preset cpack-msvc17 -C Debug
+      - name: 工作流 (Debug)
+        run: cmake --workflow --preset workflow-msvc17-debug
 
       - name: 安装 (Debug)
-        run: cmake --install build/msvc17 --config Debug
+        run: cmake --install build/msvc17-debug --config Debug
 
-      - name: 构建 (Release)
-        run: cmake --build --preset msvc17-release
+      - name: 配置 (Release)
+        run: cmake --preset msvc17-release
 
-      - name: 测试 (Release)
-        run: ctest --preset ctest-msvc17-release  
-
-      - name: 打包 (Release)
-        run: cpack --preset cpack-msvc17 -C Release
+      - name: 工作流 (Release)
+        run: cmake --workflow --preset workflow-msvc17-release
 
       - name: 安装 (Release)
-        run: cmake --install build/msvc17 --config Release
+        run: cmake --install build/msvc17-release --config Release
 
       - name: 上传压缩包
         uses: actions/upload-artifact@v4

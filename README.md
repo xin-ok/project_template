@@ -5,8 +5,8 @@
 ## 特性
 
 - ✅ **跨平台构建** — 支持 Linux GCC/Clang + Ninja 和 Windows MSVC/Clang/MinGW + Ninja/Visual Studio
+- ✅ **统一构建行为** — MSVC的多配置构建会产生一些难以控制的行为，因此统一为一次只构建一种类型，并强制传入CMAKE_BUILD_TYPE
 - ✅ **自动生成 Presets** — 一键检测环境，自动生成适配的 CMakePresets.json
-- ✅ **多目标类型** — 可执行程序、静态库（`.a`/`.lib`）、动态库（`.so`/`.dll`）示例
 - ✅ **CTest 集成** — 内置测试支持，`cmake --build` 后可直接 `ctest`
 - ✅ **CPack 打包** — 一键打包为 `.tar.gz`（Linux）或 `.zip`（Windows）
 - ✅ **工作流 Preset** — 一条命令完成配置 → 构建 → 测试 → 打包全流程
@@ -14,7 +14,6 @@
 - ✅ **代码格式化** — 内置 `.clang-format`（Google 风格）
 - ✅ **预编译头** — 使用 CMake 3.16+ `target_precompile_headers` 自动注入，大幅加速编译
 - ✅ **跨平台项目演示** — 展示了跨平台动态库、静态库、可执行文件的简单案例
-- ✅ **多 VS 版本检测** — Windows 下自动检测所有已安装的 Visual Studio 版本（vswhere）
 - ✅ **多编译器支持** — 同时检测 MSVC、Clang、MinGW GCC、GCC
 - ✅ **VS Code 深度集成** — 配合 CMake Tools 插件，自动识别 Preset，可视化编译、构建、测试、打包、安装
 
@@ -47,26 +46,18 @@ cmake --list-presets
 
 ```bash
 # 配置并构建（具体名称以 --list-presets 输出为准）
-# Linux 示例：GCC 14.2.0 Debug
-cmake --preset gcc_14.2.0-debug
-cmake --build --preset gcc_14.2.0-debug
-
-# Windows 示例：MSVC 17
-cmake --preset msvc17
+# Windows 示例：MSVC 17 Debug
+cmake --preset msvc17-debug
 cmake --build --preset msvc17-debug
 
-# 运行（Linux）
-./build/gcc_14.2.0-debug/bin/project1d
-./build/gcc_14.2.0-debug/bin/TestLibd
-
 # 测试
-ctest --preset ctest-gcc_14.2.0-debug
+ctest --preset ctest-msvc17-debug
 
 # 打包
-cpack --preset cpack-gcc_14.2.0-debug
+cpack --preset cpack-msvc17-debug
 
 # 安装
-cmake --install build/gcc_14.2.0-debug --config Debug
+cmake --install build/msvc17-debug --config Debug
 
 # 一键工作流
 # 配置 → 构建 → 测试 → 打包，一条命令完成：
@@ -90,7 +81,7 @@ cmake --workflow --preset workflow-gcc_14.2.0-debug
 |------|-----------------|------|
 | Linux GCC | `gcc_{版本}-debug` / `gcc_{版本}-release` | 如 `gcc_14.2.0-debug` |
 | Linux Clang | `clang_{版本}-debug` / `clang_{版本}-release` | 如 `clang_20.1.0-debug` |
-| Windows MSVC | `msvc{主版本}` | 如 `msvc17`，多配置，构建时指定 Debug/Release |
+| Windows MSVC | `msvc{主版本}-debug` / `msvc{主版本}-release` | 如 `msvc17-debug`，Visual Studio 多配置生成器 |
 | Windows Clang | `clang_{版本}-debug` / `clang_{版本}-release` | 如 `clang_20.1.0-debug`，独立安装的 Clang |
 | Windows MinGW | `gcc_{版本}-debug` / `gcc_{版本}-release` | 如 `gcc_14.2.0-debug`，MinGW GCC |
 
@@ -105,17 +96,17 @@ cmake --workflow --preset workflow-gcc_14.2.0-debug
 
 ### 配置 Preset（configurePresets）
 
-配置 Preset 定义了 CMake 的配置参数，包括生成器、编译器、构建类型和输出目录。
+配置 Preset 定义了 CMake 的配置参数，包括生成器、编译器、构建类型和输出目录。所有编译器均分 Debug/Release 各一个 Preset，通过 `CMAKE_BUILD_TYPE` 指定构建类型。
 
-- **单配置生成器（Ninja / Unix Makefiles）**: 用于独立 Clang、GCC（跨平台），Debug/Release 各一个 Preset，构建类型在配置时通过 `CMAKE_BUILD_TYPE` 指定
-- **多配置生成器（Visual Studio）**: 用于 MSVC、Clang-cl（仅 Windows），一个 Preset 包含 Debug/Release，构建类型在构建时指定
+- **MSVC / Clang-cl**: Visual Studio 多配置生成器，同时设置 `CMAKE_BUILD_TYPE` 和 buildPreset 中的 `configuration` 字段
+- **独立 Clang / GCC**: 单配置生成器（Ninja / Unix Makefiles），仅通过 `CMAKE_BUILD_TYPE` 控制
 
 ### 构建 Preset（buildPresets）
 
 构建 Preset 关联到对应的配置 Preset。
 
-- **单配置**: 直接引用配置 Preset 名称
-- **多配置**: 需要为 Debug/Release 各生成一个（如 `msvc17-debug`、`msvc17-release`）
+- **MSVC / Clang-cl**: 除引用 configurePreset 外，还带有 `"configuration"` 字段（Visual Studio 多配置生成器需要此字段来识别 Debug/Release）
+- **独立 Clang / GCC**: 直接引用 configurePreset 名称
 
 ### 测试 Preset（testPresets）
 
@@ -154,30 +145,32 @@ CMakePresets.json
 │   ├── gcc_14.2.0-release    # Linux: GCC 14.2.0 Release
 │   ├── clang_20.1.0-debug    # Linux/Windows: Clang 20.1.0 Debug
 │   ├── clang_20.1.0-release  # Linux/Windows: Clang 20.1.0 Release
-│   └── msvc17                # Windows: MSVC 17（多配置）
+│   ├── msvc17-debug          # Windows: MSVC 17 Debug
+│   └── msvc17-release        # Windows: MSVC 17 Release
 │
 ├── buildPresets              # 构建 Preset（关联配置 Preset）
 │   ├── gcc_14.2.0-debug      # → gcc_14.2.0-debug
 │   ├── gcc_14.2.0-release    # → gcc_14.2.0-release
 │   ├── clang_20.1.0-debug    # → clang_20.1.0-debug
 │   ├── clang_20.1.0-release  # → clang_20.1.0-release
-│   ├── msvc17-debug          # → msvc17 (Debug)
-│   └── msvc17-release        # → msvc17 (Release)
+│   ├── msvc17-debug          # → msvc17-debug (Debug)
+│   └── msvc17-release        # → msvc17-release (Release)
 │
 ├── testPresets               # 测试 Preset（关联配置 Preset）
 │   ├── ctest-gcc_14.2.0-debug    # → gcc_14.2.0-debug
 │   ├── ctest-gcc_14.2.0-release  # → gcc_14.2.0-release
 │   ├── ctest-clang_20.1.0-debug  # → clang_20.1.0-debug
 │   ├── ctest-clang_20.1.0-release# → clang_20.1.0-release
-│   ├── ctest-msvc17-debug        # → msvc17 (Debug)
-│   └── ctest-msvc17-release      # → msvc17 (Release)
+│   ├── ctest-msvc17-debug        # → msvc17-debug (Debug)
+│   └── ctest-msvc17-release      # → msvc17-release (Release)
 │
 ├── packagePresets            # 打包 Preset（关联配置 Preset）
 │   ├── cpack-gcc_14.2.0-debug    # → gcc_14.2.0-debug
 │   ├── cpack-gcc_14.2.0-release  # → gcc_14.2.0-release
 │   ├── cpack-clang_20.1.0-debug  # → clang_20.1.0-debug
 │   ├── cpack-clang_20.1.0-release# → clang_20.1.0-release
-│   └── cpack-msvc17              # → msvc17
+│   ├── cpack-msvc17-debug        # → msvc17-debug
+│   └── cpack-msvc17-release      # → msvc17-release
 │
 └── workflowPresets           # 工作流 Preset（串联多个 Preset）
     ├── workflow-gcc_14.2.0-debug       # configure → build → test → package
@@ -221,7 +214,7 @@ cmake --preset gcc_14.2.0-debug -DENABLE_FSANITIZE_THREAD=ON
 
 ## 代码格式化
 
-项目使用 Google C++ 风格指南，配置文件为 `.clang-format`。
+项目参考 Google C++ 风格指南，配置文件为 `.clang-format`。
 
 ## 清理构建产物
 
