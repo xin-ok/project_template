@@ -27,6 +27,7 @@ if(WIN32)
         /Gy                       # 启用函数级链接（影响链接时间）
         /MP                       # 多进程编译，加速构建
         $<$<CONFIG:Debug>:/sdl>   # 启用安全开发生命周期检查（缓冲区溢出等）
+        $<$<CONFIG:Debug>:/Oy->   # 保留帧指针
     )
 else()
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/lib/Release)
@@ -67,14 +68,11 @@ endif()
 if(ENABLE_RELEASE_DEBUG_INFO)
     message(STATUS "# Enable debug info in Release mode")
     if(MSVC)
-        add_compile_options(/Zi /UNDEBUG)
+        add_compile_options(/Zi)
         add_link_options(/DEBUG)
     else()
         add_compile_options(
             -g3 
-            -U NDEBUG 
-            -fno-omit-frame-pointer
-            -fno-optimize-sibling-calls
         )
     endif()
 endif()
@@ -82,9 +80,17 @@ endif()
 if(DISABLE_RELEASE_OPTIMIZATION)
     message(STATUS "# Disable optimization in Release mode")
     if(MSVC)
-        add_compile_options(/Od /Ob0 /Oy-)
+        add_compile_options(
+            /Od 
+            /Ob0 
+            /Oy-
+        )
     else()
-        add_compile_options(-O0)
+        add_compile_options(
+            -O0
+            -fno-omit-frame-pointer
+            -fno-optimize-sibling-calls
+        )
     endif()
 endif()
 

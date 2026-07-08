@@ -145,6 +145,28 @@ function(detect_all_visual_studio)
         # 从 Dev17 中提取主版本号 17
         string(REGEX REPLACE "Dev" "" VS_VERSION_MAJOR "${VS_PRODUCT_LINE}")
 
+        # 校验 VS_YEAR 是否为合法的 4 位年份
+        # 某些 VS 预览版（如 Dev18 / VS 2026）的 catalog_productLineVersion
+        # 可能返回主版本号 "18" 而非年份 "2026"，需要做回退推导
+        string(REGEX MATCH "^[0-9]{4}$" _valid_year "${VS_YEAR}")
+        if(NOT _valid_year)
+            # 根据主版本号推导发布年份（基于已知 VS 版本映射）
+            if(VS_VERSION_MAJOR EQUAL 18)
+                set(VS_YEAR "2026")
+            elseif(VS_VERSION_MAJOR EQUAL 17)
+                set(VS_YEAR "2022")
+            elseif(VS_VERSION_MAJOR EQUAL 16)
+                set(VS_YEAR "2019")
+            elseif(VS_VERSION_MAJOR EQUAL 15)
+                set(VS_YEAR "2017")
+            elseif(VS_VERSION_MAJOR EQUAL 14)
+                set(VS_YEAR "2015")
+            else()
+                # 未知版本：用主版本号作为年份（尽力而为）
+                set(VS_YEAR "20${VS_VERSION_MAJOR}")
+            endif()
+        endif()
+
         # 生成 CMake 生成器名称
         set(GENERATOR "Visual Studio ${VS_VERSION_MAJOR} ${VS_YEAR}")
 
