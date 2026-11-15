@@ -61,6 +61,9 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_PREDEFINED ${DOXYGEN_PREDEFINED_LIST})
     message(STATUS "DOXYGEN_PREDEFINED = ${DOXYGEN_PREDEFINED_LIST}")
     
+    # set(DOXYGEN_STRIP_FROM_PATH "${PROJECT_SOURCE_DIR}/src/${CMAKE_PROJECT_NAME}/core/")
+    # set(DOXYGEN_FULL_PATH_NAMES YES)
+
     # 定义生成文档的 target
     doxygen_add_docs(
         build_docs
@@ -69,6 +72,17 @@ if(DOXYGEN_FOUND)
     )
 
     set_target_properties(build_docs PROPERTIES FOLDER "tools")
+    
+    if(${INSTALL_DOCS})
+        add_custom_target(build_docs_target ALL)
+        set_target_properties(build_docs_target PROPERTIES FOLDER "tools")
+        add_dependencies(build_docs_target build_docs)
+
+        install(
+            DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
+            DESTINATION docs
+        )
+    endif()
 else()
     message(WARNING "未找到 Doxygen，无法生成文档。请安装 Doxygen。")
 endif()

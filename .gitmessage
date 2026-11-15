@@ -1,20 +1,33 @@
+
+# 概述
 # <type>(<scope>): <subject>
 #
-# 为什么做这个变更
+# 正文及细节
 # <body>
 #
-# 相关引用
+# 相关引用（如 Closes #123）
 # <footer>
 #
-# 类型说明：
+# 破坏性变更（如有，必须大写 BREAKING CHANGE: 开头）
+# BREAKING CHANGE: <不兼容变更的说明与迁移指引>
+#
+# ── 类型说明 ──────────────────────────────────────────
 # feat:     新功能
 # fix:      修复 bug
 # docs:     文档变更
-# style:    代码格式变更
-# refactor: 重构
+# style:    代码格式变更（不影响逻辑）
+# refactor: 重构（既不新增功能也不修 bug）
 # perf:     性能优化
 # test:     测试相关
-# chore:    构建过程或辅助工具的变动
+# build:    构建系统或外部依赖变更
 # ci:       CI 配置变更
-# build:    构建系统变更
+# chore:    其他杂项（不修改 src 或 test）
 # revert:   回滚提交
+#
+# ── 规则提示 ──────────────────────────────────────────
+# 1. scope 可选；破坏性变更可用 ! 标记，如 feat(api)!: ...
+# 2. header 与 body 之间、body 与 footer 之间各空一行
+# 3. subject 句末不加句号
+# 4. 使用模板命令 git config commit.template .gitmessage
+# ─────────────────────────────────────────────────────
+#

@@ -63,9 +63,20 @@ option(ENABLE_RELEASE_DEBUG_INFO "Enable debug info in Release mode" OFF)
 option(DISABLE_RELEASE_OPTIMIZATION "Disable optimization in Release mode" OFF)
 option(ENABLE_FSANITIZE_ADDRESS "Enable AddressSanitizer (memory error detection)" OFF)
 option(BUILD_DOCS "Build documentation" OFF)
+cmake_dependent_option(
+    INSTALL_DOCS "Install documentation"
+    ON
+    BUILD_DOCS
+    ON             
+)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
-option(INSTALL_EXAMPLES "Install examples" ON)
+cmake_dependent_option(
+    INSTALL_EXAMPLES "Install examples"
+    ON
+    BUILD_EXAMPLES
+    ON             
+)
 option(BUILD_TESTS "Build tests" OFF)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 if(MSVC)
