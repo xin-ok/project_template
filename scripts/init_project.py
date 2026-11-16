@@ -7,13 +7,32 @@ Steps performed (in order):
     2. Check whether the template has already been initialized
        (prevents a second run from corrupting the project)
     3. Clean build artifacts: build/ bin/ lib/ install/ packages/
-    4. Replace the project name in a whitelist of files
+    4. Remove template example files & directories:
+         - benchmarks/bench_math/    (deleted)
+         - examples/lib_test/        (deleted)
+         - tests/add_test/           (deleted)
+         - docs/build-options.md     (deleted)
+         - docs/presets.md           (deleted)
+         - .github                   (deleted)
+         - LICENSE / README.md       (deleted)
+       And empty these files (kept so add_subdirectory still works):
+         - benchmarks/CMakeLists.txt
+         - examples/CMakeLists.txt
+         - tests/CMakeLists.txt
+         - .gitmodules
+    5. Strip the googletest / googlebenchmark FetchContent blocks from the
+       top-level CMakeLists.txt (the add_subdirectory(...) wrappers are kept)
+    6. Replace the project name in a whitelist of files
        (no global search-and-replace)
-    5. Rename cmake/project_templateConfig.cmake.in -> cmake/<name>Config.cmake.in
-    6. Run cmake -P cmake/GeneratePresets.cmake to create CMakePresets.json
+    7. Rename cmake/project_templateConfig.cmake.in -> cmake/<name>Config.cmake.in
+    8. Run cmake -P cmake/GeneratePresets.cmake to create CMakePresets.json
 
 Note: the source directory is always src/ and does not depend on the project
-name, so it is never renamed.
+name, so it is never renamed. The example sources under src/ (print_hello,
+shared_lib, static_lib) are deliberately kept as copy-paste references.
+
+Result: after a successful run the repository is a clean, minimal skeleton
+without the sample benchmarks / tests / examples / docs / license / README.
 
 Usage (run from the project root):
     python scripts/init_project.py MyProject
@@ -33,8 +52,10 @@ independent of the current working directory.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -86,16 +107,6 @@ TEXT_REPLACEMENTS: dict[str, list[tuple[str, str]]] = {
         (f"python scripts/package_install.py {TEMPLATE_NAME}-1.0.0-win64",
          f"python scripts/package_install.py {NAME_TOKEN}-1.0.0-win64"),
     ],
-    # examples/lib_test links the in-project target name directly
-    "examples/lib_test/CMakeLists.txt": [
-        (f"    {TEMPLATE_NAME}\n", f"    {NAME_TOKEN}\n"),
-    ],
-    # Standalone build variant of examples/lib_test: find_package + namespaced target
-    "examples/lib_test/CMakeLists.install.txt": [
-        (f"find_package({TEMPLATE_NAME} REQUIRED)",
-         f"find_package({NAME_TOKEN} REQUIRED)"),
-        (f"{TEMPLATE_NAME}::{TEMPLATE_NAME}", f"{NAME_TOKEN}::{NAME_TOKEN}"),
-    ],
 }
 
 # Files to rename (relative path -> new file name template)
@@ -107,6 +118,37 @@ FILE_RENAMES: dict[str, str] = {
 # The source directory is always src/ and does not depend on the project name,
 # so this mapping is empty.
 DIR_RENAMES: dict[str, str] = {}
+
+# Example / template files & directories to remove after initialization.
+# These are reference samples that a real project does not need.
+REMOVE_PATHS = [
+    "benchmarks/bench_math",   # 基准测试示例目录
+    "examples/lib_test",       # 独立 find_package 使用示例目录
+    "tests/add_test",          # 单元测试示例目录
+    "docs/build-options.md",   # 模板文档
+    "docs/presets.md",         # 模板文档
+    "LICENSE",                 # 模板许可证
+    "README.md",               # 模板说明
+    ".github",                 # 模板 CI 配置目录
+]
+
+# Files to truncate to empty. They must still exist because the top-level
+# CMakeLists.txt keeps `add_subdirectory(...)` for their parent directories.
+EMPTY_PATHS = [
+    "benchmarks/CMakeLists.txt",
+    "examples/CMakeLists.txt",
+    "tests/CMakeLists.txt",
+    ".gitmodules",
+]
+
+# Top-level CMakeLists.txt FetchContent blocks to remove.
+# Each entry is (start_marker, end_marker): lines from the start marker to the
+# end marker (inclusive) are removed, leaving the if(...) / endif() and
+# add_subdirectory(...) wrappers intact.
+FETCHCONTENT_BLOCKS = [
+    ("# use_thirdparty(googletest)", "include(GoogleTest)"),
+    ("# use_thirdparty(benchmark)", "FetchContent_MakeAvailable(googlebenchmark)"),
+]
 
 
 # ============================================================
@@ -162,6 +204,29 @@ def is_already_initialized(root: Path) -> bool:
 #  Step implementations
 # ============================================================
 
+def _force_rmtree(path: Path) -> None:
+    """Recursively delete a directory tree, clearing the read-only flag first.
+
+    On Windows, git pack files (e.g. build/_deps/*-src/.git/objects/pack/*.idx)
+    are read-only, which makes shutil.rmtree raise PermissionError. Deleting
+    with ignore_errors=True would silently leave the directory behind, so we
+    retry with the read-only bit cleared and let a genuine failure surface.
+    """
+    # The third callback arg differs between onexc (exc) and onerror (exc_info),
+    # but we never read it, so a single function serves both signatures.
+    def _on_error(func, target, exc):
+        try:
+            os.chmod(target, stat.S_IWRITE)
+        except OSError:
+            pass
+        func(target)
+
+    try:
+        shutil.rmtree(path, onexc=_on_error)  # Python >= 3.12
+    except TypeError:
+        shutil.rmtree(path, onerror=_on_error)  # Python < 3.12
+
+
 def clean_build_artifacts(root: Path, dry_run: bool) -> None:
     step("Cleaning build artifacts")
     removed = 0
@@ -170,7 +235,11 @@ def clean_build_artifacts(root: Path, dry_run: bool) -> None:
         if target.is_dir():
             info(f"Removing {d}/")
             if not dry_run:
-                shutil.rmtree(target, ignore_errors=True)
+                try:
+                    _force_rmtree(target)
+                except OSError as e:
+                    warn(f"Failed to remove {d}/: {e}")
+                    continue
             removed += 1
     if removed == 0:
         info("Nothing to clean")
@@ -273,6 +342,73 @@ def generate_presets(root: Path, dry_run: bool) -> bool:
     return True
 
 
+def remove_template_stubs(root: Path, dry_run: bool) -> None:
+    """Remove example files/directories and empty example CMakeLists.txt files
+    so the template becomes a clean, minimal starting point."""
+    step("Removing template example files")
+
+    for rel in REMOVE_PATHS:
+        target = root / rel
+        if target.is_dir():
+            info(f"Removing {rel}/")
+            if not dry_run:
+                try:
+                    _force_rmtree(target)
+                except OSError as e:
+                    warn(f"Failed to remove {rel}/: {e}")
+        elif target.is_file():
+            info(f"Removing {rel}")
+            if not dry_run:
+                target.unlink(missing_ok=True)
+        else:
+            warn(f"Skipped (not found): {rel}")
+
+    for rel in EMPTY_PATHS:
+        target = root / rel
+        if not target.is_file():
+            warn(f"Skipped (file not found): {rel}")
+            continue
+        info(f"Emptying {rel}")
+        if not dry_run:
+            target.write_text("", encoding="utf-8")
+
+
+def remove_fetchcontent_blocks(root: Path, dry_run: bool) -> None:
+    """Remove the googletest / googlebenchmark FetchContent blocks from the
+    top-level CMakeLists.txt, keeping the if(...) / add_subdirectory(...)."""
+    path = root / "CMakeLists.txt"
+    if not path.is_file():
+        warn("Skipped (file not found): CMakeLists.txt")
+        return
+
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    out: list[str] = []
+    skip_until: str | None = None
+    removed = 0
+
+    for line in lines:
+        if skip_until is not None:
+            if skip_until in line:
+                skip_until = None
+                removed += 1
+            continue
+        matched_end = next(
+            (end for start, end in FETCHCONTENT_BLOCKS if start in line), None
+        )
+        if matched_end is not None:
+            skip_until = matched_end
+            continue
+        out.append(line)
+
+    if removed == 0:
+        warn("CMakeLists.txt: no FetchContent block found (already cleaned?)")
+        return
+
+    info(f"CMakeLists.txt: removed {removed} FetchContent block(s)")
+    if not dry_run:
+        path.write_text("".join(out), encoding="utf-8")
+
+
 # ============================================================
 #  Main flow
 # ============================================================
@@ -327,16 +463,22 @@ def main() -> int:
     else:
         clean_build_artifacts(root, args.dry_run)
 
-    # ---- 4. Text replacement (must run before directory renames) ----
+    # ---- 4. Remove template example files & directories ----
+    remove_template_stubs(root, args.dry_run)
+
+    # ---- 5. Strip FetchContent blocks from top-level CMakeLists.txt ----
+    remove_fetchcontent_blocks(root, args.dry_run)
+
+    # ---- 6. Text replacement (must run before directory renames) ----
     apply_text_replacements(root, name, args.dry_run)
 
-    # ---- 5. Rename files ----
+    # ---- 7. Rename files ----
     rename_files(root, name, args.dry_run)
 
-    # ---- 6. Rename directories (last, to avoid stale paths) ----
+    # ---- 8. Rename directories (last, to avoid stale paths) ----
     rename_dirs(root, name, args.dry_run)
 
-    # ---- 7. Generate presets ----
+    # ---- 9. Generate presets ----
     if args.no_presets:
         step("Generating CMakePresets.json")
         info("Skipped (--no-presets)")

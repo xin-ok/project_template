@@ -17,7 +17,7 @@
 git clone https://github.com/xin-ok/project_template-main.git MyProject
 cd MyProject
 
-# 2. 改工程名（自动替换所有引用 + 生成 CMakePresets.json）
+# 2. 改工程名（自动替换所有引用 + 生成 CMakePresets.json + 清理大量示例/资源文件只保留工程骨架）
 python scripts/init_project.py MyProject
 
 # 3. 构建
@@ -202,6 +202,20 @@ python scripts/init_project.py MyProject
 | `--keep-build` | 不清理构建产物 |
 
 > 脚本只能运行一次。若模板已被初始化，需加 `--force` 才会继续。
+
+#### 脚本会删除 / 清空的内容
+
+脚本除了改工程名、清理构建产物外，还会清掉模板自带的示例，把工程变成干净骨架：
+
+| 操作 | 目标 |
+|---|---|
+| 删除目录 | `benchmarks/bench_math/`、`examples/lib_test/`、`tests/add_test/`、`.github/` |
+| 删除文件 | `docs/build-options.md`、`docs/presets.md`、`LICENSE`、`README.md` |
+| 清空文件 | `benchmarks/CMakeLists.txt`、`examples/CMakeLists.txt`、`tests/CMakeLists.txt`、`.gitmodules` |
+| 精简 | 顶层 `CMakeLists.txt` 中 googletest / benchmark 的 `FetchContent` 块 |
+
+> `src/` 下的 `print_hello`、`shared_lib`、`static_lib` **不会删除**，保留给你复制粘贴参考。
+> 想先看会删什么？加 `--dry-run`。
 
 ### 改版本号
 
