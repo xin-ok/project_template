@@ -1,9 +1,6 @@
 set(app_name shared_lib)
 
 add_library(${app_name}
-    pch.h
-    ${app_name}_export.h
-    ${app_name}.h
     ${app_name}.cc
 )
 
@@ -23,7 +20,7 @@ endif()
 
 target_precompile_headers(${app_name} 
 PRIVATE 
-    pch.h
+    ${PROJECT_SOURCE_DIR}/include/${app_name}/pch.h
 )
 
 target_compile_definitions(${app_name}
@@ -43,6 +40,9 @@ install(TARGETS ${app_name}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-install(FILES pch.h ${app_name}.h ${app_name}_export.h
+install(FILES 
+    ${PROJECT_SOURCE_DIR}/include/${app_name}/pch.h 
+    ${PROJECT_SOURCE_DIR}/include/${app_name}/${app_name}.h 
+    ${PROJECT_SOURCE_DIR}/include/${app_name}/${app_name}_export.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${app_name}
 )

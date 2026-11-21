@@ -4,7 +4,7 @@ add_executable(${app_name} ${app_name}.cc)
 
 target_link_libraries(${app_name}
 PRIVATE
-    project_template
+    project_template::project_template
 )
 
 set_target_properties(${app_name} PROPERTIES

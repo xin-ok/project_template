@@ -2,7 +2,6 @@ set(app_name static_lib)
 
 add_library(${app_name}
 STATIC
-    ${app_name}.h
     ${app_name}.cc
 )
 
@@ -16,6 +15,7 @@ install(TARGETS ${app_name}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-install(FILES ${app_name}.h
+install(FILES 
+    ${PROJECT_SOURCE_DIR}/include/${app_name}/${app_name}.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${app_name}
 )

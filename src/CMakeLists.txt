@@ -1,4 +1,7 @@
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include
+)
 
 add_subdirectory(print_hello)
 add_subdirectory(shared_lib)
@@ -16,7 +19,7 @@ INTERFACE
 )
 
 target_include_directories(${export_name} INTERFACE
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 

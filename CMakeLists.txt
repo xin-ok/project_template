@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.30)
 # ============================================================
 #  👇 自定义项目配置
 # ============================================================
@@ -19,15 +19,15 @@ enable_testing()
 
 add_subdirectory(src)
 
-if(${BUILD_EXAMPLES})
+if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(${BUILD_DOCS})
+if(BUILD_DOCS)
     include(cmake/DoxygenPreset.cmake)
 endif()
 
-if(${BUILD_TESTS})
+if(BUILD_TESTS)
     # use_thirdparty(googletest) 使用git submodule方式初始化
     FetchContent_Declare(
         googletest
@@ -41,7 +41,7 @@ if(${BUILD_TESTS})
     add_subdirectory(tests)
 endif()
 
-if(${BUILD_BENCHMARKS})
+if(BUILD_BENCHMARKS)
     # use_thirdparty(benchmark)
     # 关闭 benchmark 自带的测试/示例，避免污染 bin/ 并拖慢构建
     set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)

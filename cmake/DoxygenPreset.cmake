@@ -1,4 +1,4 @@
-find_package(Doxygen COMPONENTS dot)
+find_package(Doxygen OPTIONAL_COMPONENTS dot)
 
 if(DOXYGEN_FOUND)
     # 项目名
@@ -68,12 +68,13 @@ if(DOXYGEN_FOUND)
     doxygen_add_docs(
         build_docs
         ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/include
         COMMENT "正在使用 Doxygen 生成文档..."
     )
 
     set_target_properties(build_docs PROPERTIES FOLDER "tools")
     
-    if(${INSTALL_DOCS})
+    if(INSTALL_DOCS)
         add_custom_target(build_docs_target ALL)
         set_target_properties(build_docs_target PROPERTIES FOLDER "tools")
         add_dependencies(build_docs_target build_docs)

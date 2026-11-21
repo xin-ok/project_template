@@ -53,7 +53,11 @@ else()
     )
 endif()
 
-set(MSVC_DEBUGGER_DIR "${PROJECT_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(MSVC_DEBUGGER_DIR "${PROJECT_SOURCE_DIR}/bin/Debug")
+else()
+    set(MSVC_DEBUGGER_DIR "${PROJECT_SOURCE_DIR}/bin/Release")
+endif()
 set(DOXYGEN_PREDEFINED_LIST "")
 set(USER_DOT_PATH "" CACHE FILEPATH "Set the path to Graphviz dot")
 
