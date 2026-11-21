@@ -58,7 +58,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     set(MSVC_DEBUGGER_DIR "${PROJECT_SOURCE_DIR}/bin/Release")
 endif()
-set(DOXYGEN_PREDEFINED_LIST "")
 set(USER_DOT_PATH "" CACHE FILEPATH "Set the path to Graphviz dot")
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")

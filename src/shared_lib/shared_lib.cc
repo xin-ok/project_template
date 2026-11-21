@@ -43,25 +43,20 @@ BOOL APIENTRY DllMain(HMODULE hModule,
       // DLL 被加载到进程时调用
       // 适合做：初始化资源、创建全局对象等
       // 注意：不要在这里调用 LoadLibrary！
-      std::cout << "DLL_PROCESS_ATTACH" << std::endl;  ///< DLL 加载到进程。
       break;
 
     case DLL_THREAD_ATTACH:
       // 新线程被创建时调用（主线程除外）
       // 可选，如果不需要可以带 DLL_THREAD_DETACH 一起禁用
-      std::cout << "DLL_THREAD_ATTACH"
-                << std::endl;  ///< 新线程创建（主线程除外）。
       break;
 
     case DLL_THREAD_DETACH:
       // 线程退出时调用
-      std::cout << "DLL_THREAD_DETACH" << std::endl;  ///< 线程退出。
       break;
 
     case DLL_PROCESS_DETACH:
       // DLL 从进程中卸载时调用
       // 适合做：释放资源、清理全局对象等
-      std::cout << "DLL_PROCESS_DETACH" << std::endl;  ///< DLL 从进程卸载。
       break;
   }
   return TRUE;  // 返回 TRUE 表示初始化成功
